@@ -9,9 +9,6 @@ import { PaymentsCreateChargeDto } from './dto/payments-create-charge.dto';
 export class PaymentsService {
   private readonly stripe = new Stripe(
     this.configService.get('STRIPE_SECRET_KEY'),
-    {
-      apiVersion: '2023-10-16',
-    },
   );
 
   constructor(
