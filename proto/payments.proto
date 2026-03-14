@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package payments;
+
+service PaymentsService {
+  rpc CreateCharge (CreateChargeRequest) returns (CreateChargeResponse);
+}
+
+message CreateChargeRequest {
+  string token = 1;
+  double amount = 2;
+  string email = 3;
+}
+
+message CreateChargeResponse {
+  string id = 1;
+}
