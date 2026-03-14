@@ -1,7 +1,7 @@
-import { Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Res, UseFilters, UseGuards } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { Response } from 'express';
-import { CurrentUser, UserDocument } from '@app/common';
+import { CurrentUser, GrpcExceptionFilter, UserDocument } from '@app/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -20,6 +20,7 @@ export class AuthController {
     response.send(jwt);
   }
 
+  @UseFilters(new GrpcExceptionFilter())
   @UseGuards(JwtAuthGuard)
   @GrpcMethod('AuthService', 'Authenticate')
   async authenticate(@Payload() data: any) {
