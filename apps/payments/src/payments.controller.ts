@@ -1,15 +1,14 @@
-import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { PaymentsService } from './payments.service';
-import { PaymentsCreateChargeDto } from './dto/payments-create-charge.dto';
+import { CreateChargeRequest } from '@app/common';
 
 @Controller()
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @GrpcMethod('PaymentsService', 'CreateCharge')
-  @UsePipes(new ValidationPipe())
-  async createCharge(@Payload() data: PaymentsCreateChargeDto) {
+  async createCharge(@Payload() data: CreateChargeRequest) {
     return this.paymentsService.createCharge(data);
   }
 }

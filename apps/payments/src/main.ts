@@ -1,6 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { PAYMENTS_SERVICE, getGrpcServerOptions } from '@app/common';
+import {
+  PAYMENTS_SERVICE,
+  getGrpcServerOptions,
+  GrpcExceptionFilter,
+} from '@app/common';
 import { Logger } from 'nestjs-pino';
 import { PaymentsModule } from './payments.module';
 
@@ -11,6 +15,7 @@ async function bootstrap() {
     getGrpcServerOptions(PAYMENTS_SERVICE, configService.getOrThrow('GRPC_URL')),
   );
   app.useLogger(app.get(Logger));
+  app.useGlobalFilters(new GrpcExceptionFilter());
   await app.startAllMicroservices();
 }
 bootstrap();
