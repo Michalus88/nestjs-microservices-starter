@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { NotifyEmailDto } from './dto/notify-email.dto';
+import { NotifyEmailDto } from '@app/common';
 
 @Injectable()
 export class NotificationsService {
