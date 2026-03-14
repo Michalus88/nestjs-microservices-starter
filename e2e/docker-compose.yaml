@@ -10,6 +10,7 @@ services:
       - payments
       - notifications
       - mongo
+      - rabbitmq
   reservations:
     image: us-east4-docker.pkg.dev/sleepr-378423/reservations/production
     env_file:
@@ -24,15 +25,17 @@ services:
       - '3001:3001'
   payments:
     image: us-east4-docker.pkg.dev/sleepr-378423/payments/production
-    ports:
-      - '3003:3003'
     env_file:
       - ../apps/payments/.env
+    depends_on:
+      - rabbitmq
   notifications:
     image: us-east4-docker.pkg.dev/sleepr-378423/notifications/production
-    ports:
-      - '3004:3004'
     env_file:
       - ../apps/notifications/.env
+    depends_on:
+      - rabbitmq
   mongo:
     image: mongo
+  rabbitmq:
+    image: rabbitmq:3-management
