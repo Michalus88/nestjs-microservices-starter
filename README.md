@@ -1,73 +1,183 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Sleepr
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS microservices monorepo for hotel reservations.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture
 
-## Description
+| Service | Transport | Port |
+|---|---|---|
+| **reservations** | HTTP | 3000 |
+| **auth** | HTTP + gRPC | 3001 (HTTP), 5000 (gRPC) |
+| **payments** | gRPC | 5001 |
+| **notifications** | RabbitMQ | — (consumer) |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Communication flow:
 
-## Installation
-
-```bash
-$ npm install
+```
+Client → reservations (HTTP)
+            ├── auth (gRPC) — JWT validation
+            └── payments (gRPC) — Stripe charges
+                    └── notifications (RabbitMQ) — email notifications
 ```
 
-## Running the app
+## Prerequisites
+
+- Node.js 18+
+- pnpm
+- Docker & Docker Compose
+
+## Quick Start
 
 ```bash
-# development
-$ npm run start
+# Install dependencies
+pnpm install
 
-# watch mode
-$ npm run start:dev
+# Copy env files and fill in your values
+cp apps/reservations/.env.example apps/reservations/.env
+cp apps/auth/.env.example apps/auth/.env
+cp apps/payments/.env.example apps/payments/.env
+cp apps/notifications/.env.example apps/notifications/.env
 
-# production mode
-$ npm run start:prod
+# Start all services
+docker compose up --build
 ```
 
-## Test
+## Services & Dashboards
+
+| URL | Description |
+|---|---|
+| `http://localhost:3000` | Reservations API |
+| `http://localhost:3001` | Auth API (login, register) |
+| `http://localhost:15672` | RabbitMQ Management UI |
+
+### RabbitMQ Management
+
+Dashboard for monitoring queues, exchanges, and message flow.
+
+- URL: `http://localhost:15672`
+- Login: `guest` / `guest`
+
+Useful for checking if messages are published to the `notifications` queue and consumed correctly.
+
+## Environment Variables
+
+### reservations
+
+| Variable | Example |
+|---|---|
+| `MONGODB_URI` | `mongodb://mongo:27017/sleepr` |
+| `PORT` | `3000` |
+| `AUTH_GRPC_URL` | `auth:5000` |
+| `PAYMENTS_GRPC_URL` | `payments:5001` |
+
+### auth
+
+| Variable | Example |
+|---|---|
+| `MONGODB_URI` | `mongodb://mongo:27017/sleepr` |
+| `JWT_SECRET` | your secret |
+| `JWT_EXPIRATION` | `3600` |
+| `HTTP_PORT` | `3001` |
+| `GRPC_URL` | `0.0.0.0:5000` |
+
+### payments
+
+| Variable | Example |
+|---|---|
+| `GRPC_URL` | `0.0.0.0:5001` |
+| `RABBITMQ_URI` | `amqp://rabbitmq:5672` |
+| `STRIPE_SECRET_KEY` | `sk_test_...` |
+
+### notifications
+
+| Variable | Example |
+|---|---|
+| `RABBITMQ_URI` | `amqp://rabbitmq:5672` |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USERNAME` | your email |
+| `SMTP_PASSWORD` | your app password |
+
+## Development
 
 ```bash
-# unit tests
-$ npm run test
+# Start single service with watch mode
+pnpm run start:dev reservations
 
-# e2e tests
-$ npm run test:e2e
+# Run tests
+pnpm run test
 
-# test coverage
-$ npm run test:cov
+# Run e2e tests
+pnpm run test:e2e
+
+# Lint & format
+pnpm run lint
+pnpm run format
 ```
 
-## Support
+## API Testing
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Register
 
-## Stay in touch
+```
+POST http://localhost:3001/users
+Content-Type: application/json
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```json
+{
+  "email": "test@sleepr.com",
+  "password": "Test123!@#",
+  "roles": ["admin"]
+}
+```
 
-## License
+Password must satisfy `@IsStrongPassword()` — min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char.
 
-Nest is [MIT licensed](LICENSE).
+### Login
+
+```
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "test@sleepr.com",
+  "password": "Test123!@#"
+}
+```
+
+Returns JWT in `Authentication` cookie.
+
+### Create Reservation (requires JWT)
+
+```
+POST http://localhost:3000/reservations
+Content-Type: application/json
+Authentication: <jwt-token-from-cookie>
+```
+
+```json
+{
+  "startDate": "2026-04-01T00:00:00Z",
+  "endDate": "2026-04-05T00:00:00Z",
+  "placeId": "123",
+  "charge": {
+    "token": "tok_visa",
+    "amount": 50
+  }
+}
+```
+
+This request tests the **full flow**: reservations → auth (gRPC) → payments (gRPC) → notifications (RMQ).
+
+## Proto / gRPC
+
+Proto files are in `proto/`. To regenerate TypeScript types after editing `.proto` files:
+
+```bash
+pnpm run proto:generate
+```
+
+Generated types are in `libs/common/src/grpc/generated/`.
