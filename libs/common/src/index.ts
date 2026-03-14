@@ -9,3 +9,4 @@ export * from './health';
 export * from './grpc';
 export * from './rmq';
 export * from './filters';
+export * from './interceptors';
