@@ -18,9 +18,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "docker-compose --project-directory ./e2e up e2e"
+    "test:e2e": "docker-compose --project-directory ./e2e up e2e",
+    "proto:generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/common/src/grpc/generated --ts_proto_opt=nestJs=true --ts_proto_opt=outputServices=grpc-js --proto_path=./proto ./proto/*.proto"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
     "@nestjs/common": "^11.1.12",
@@ -65,6 +67,7 @@
     "ts-jest": "29.4.6",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
+    "ts-proto": "^2.11.5",
     "tsconfig-paths": "4.2.0",
     "typescript": "^5.9.3"
   },
