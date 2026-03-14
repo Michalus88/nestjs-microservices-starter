@@ -1,17 +1,13 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
-
-interface GrpcModuleOptions {
-  name: string;
-  protoPath: string;
-  packageName: string;
-}
+import { getGrpcServiceConfig, getProtoPath } from './grpc.config';
 
 @Module({})
 export class GrpcModule {
-  static register({ name, protoPath, packageName }: GrpcModuleOptions): DynamicModule {
+  static register(name: string): DynamicModule {
+    const { packageName } = getGrpcServiceConfig(name);
+
     return {
       module: GrpcModule,
       imports: [
@@ -22,7 +18,7 @@ export class GrpcModule {
               transport: Transport.GRPC,
               options: {
                 package: packageName,
-                protoPath: join(__dirname, protoPath),
+                protoPath: getProtoPath(name),
                 url: configService.getOrThrow<string>(`${name.toUpperCase()}_GRPC_URL`),
               },
             }),
