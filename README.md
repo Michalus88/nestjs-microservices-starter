@@ -4,12 +4,14 @@ NestJS microservices monorepo for hotel reservations.
 
 ## Architecture
 
-| Service | Transport | Port |
-|---|---|---|
-| **reservations** | HTTP | 3000 |
-| **auth** | HTTP + gRPC | 3001 (HTTP), 5000 (gRPC) |
-| **payments** | gRPC | 5001 |
-| **notifications** | RabbitMQ | — (consumer) |
+
+| Service           | Transport   | Port                     |
+| ----------------- | ----------- | ------------------------ |
+| **reservations**  | HTTP        | 3000                     |
+| **auth**          | HTTP + gRPC | 3001 (HTTP), 5000 (gRPC) |
+| **payments**      | gRPC        | 5001                     |
+| **notifications** | RabbitMQ    | — (consumer)             |
+
 
 Communication flow:
 
@@ -44,11 +46,13 @@ docker compose up --build
 
 ## Services & Dashboards
 
-| URL | Description |
-|---|---|
-| `http://localhost:3000` | Reservations API |
-| `http://localhost:3001` | Auth API (login, register) |
-| `http://localhost:15672` | RabbitMQ Management UI |
+
+| URL                      | Description                |
+| ------------------------ | -------------------------- |
+| `http://localhost:3000`  | Reservations API           |
+| `http://localhost:3001`  | Auth API (login, register) |
+| `http://localhost:15672` | RabbitMQ Management UI     |
+
 
 ### RabbitMQ Management
 
@@ -63,40 +67,48 @@ Useful for checking if messages are published to the `notifications` queue and c
 
 ### reservations
 
-| Variable | Example |
-|---|---|
-| `MONGODB_URI` | `mongodb://mongo:27017/sleepr` |
-| `PORT` | `3000` |
-| `AUTH_GRPC_URL` | `auth:5000` |
-| `PAYMENTS_GRPC_URL` | `payments:5001` |
+
+| Variable            | Example                        |
+| ------------------- | ------------------------------ |
+| `MONGODB_URI`       | `mongodb://mongo:27017/sleepr` |
+| `PORT`              | `3000`                         |
+| `AUTH_GRPC_URL`     | `auth:5000`                    |
+| `PAYMENTS_GRPC_URL` | `payments:5001`                |
+
 
 ### auth
 
-| Variable | Example |
-|---|---|
-| `MONGODB_URI` | `mongodb://mongo:27017/sleepr` |
-| `JWT_SECRET` | your secret |
-| `JWT_EXPIRATION` | `3600` |
-| `HTTP_PORT` | `3001` |
-| `GRPC_URL` | `0.0.0.0:5000` |
+
+| Variable         | Example                        |
+| ---------------- | ------------------------------ |
+| `MONGODB_URI`    | `mongodb://mongo:27017/sleepr` |
+| `JWT_SECRET`     | your secret                    |
+| `JWT_EXPIRATION` | `3600`                         |
+| `HTTP_PORT`      | `3001`                         |
+| `GRPC_URL`       | `0.0.0.0:5000`                 |
+
 
 ### payments
 
-| Variable | Example |
-|---|---|
-| `GRPC_URL` | `0.0.0.0:5001` |
-| `RABBITMQ_URI` | `amqp://rabbitmq:5672` |
-| `STRIPE_SECRET_KEY` | `sk_test_...` |
+
+| Variable            | Example                |
+| ------------------- | ---------------------- |
+| `GRPC_URL`          | `0.0.0.0:5001`         |
+| `RABBITMQ_URI`      | `amqp://rabbitmq:5672` |
+| `STRIPE_SECRET_KEY` | `sk_test_...`          |
+
 
 ### notifications
 
-| Variable | Example |
-|---|---|
-| `RABBITMQ_URI` | `amqp://rabbitmq:5672` |
-| `SMTP_HOST` | `smtp.gmail.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USERNAME` | your email |
-| `SMTP_PASSWORD` | your app password |
+
+| Variable        | Example                |
+| --------------- | ---------------------- |
+| `RABBITMQ_URI`  | `amqp://rabbitmq:5672` |
+| `SMTP_HOST`     | `smtp.gmail.com`       |
+| `SMTP_PORT`     | `587`                  |
+| `SMTP_USERNAME` | your email             |
+| `SMTP_PASSWORD` | your app password      |
+
 
 ## Development
 
@@ -164,7 +176,7 @@ Authentication: <jwt-token-from-cookie>
   "endDate": "2026-04-05T00:00:00Z",
   "placeId": "123",
   "charge": {
-    "token": "tok_visa",
+    "token": "pm_card_visa",
     "amount": 50
   }
 }
