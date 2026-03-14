@@ -1,5 +1,5 @@
 import { Controller, Post, Res, UseGuards } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { Response } from 'express';
 import { CurrentUser, UserDocument } from '@app/common';
 import { AuthService } from './auth.service';
@@ -21,7 +21,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @MessagePattern('authenticate')
+  @GrpcMethod('AuthService', 'Authenticate')
   async authenticate(@Payload() data: any) {
     return data.user;
   }
