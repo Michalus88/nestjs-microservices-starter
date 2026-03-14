@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { LoggerModule } from '@app/common';
+import { LoggerModule, RmqModule } from '@app/common';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 
@@ -10,7 +10,7 @@ import { NotificationsService } from './notifications.service';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        PORT: Joi.number().required(),
+        RABBITMQ_URI: Joi.string().required(),
         SMTP_HOST: Joi.string().required(),
         SMTP_PORT: Joi.number().required(),
         SMTP_USERNAME: Joi.string().required(),
@@ -19,6 +19,7 @@ import { NotificationsService } from './notifications.service';
       }),
     }),
     LoggerModule,
+    RmqModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],
