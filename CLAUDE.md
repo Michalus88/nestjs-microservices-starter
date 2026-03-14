@@ -51,3 +51,7 @@ pnpm run format                   # Prettier
 
 - Prettier: single quotes, trailing commas
 - ESLint: @typescript-eslint + prettier plugin
+
+## Architecture Rules
+
+See [docs/ARCHITECTURE_RULES.md](docs/ARCHITECTURE_RULES.md) — living document with rules for code placement, patterns, and conventions. **Always consult before adding new files or moving code.**
