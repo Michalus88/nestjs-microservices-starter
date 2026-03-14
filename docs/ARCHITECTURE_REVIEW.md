@@ -154,6 +154,16 @@ Wszystkie pliki `.spec.ts` zawierają tylko test `"should be defined"`. To gorsz
 
 `@Payload() data: any` w handlerze `authenticate` — traci się type safety. Powinien być dedykowany DTO/interface.
 
+#### 11. Obsługa błędów w `JwtAuthGuard` (`libs/common/src/auth/jwt-auth.guard.ts`)
+
+`catchError` na linii 54 łapie **każdy** błąd i po cichu zwraca `of(false)` (403 Forbidden) — zarówno dla nieprawidłowego tokena jak i dla niedostępnego auth serwisu. Użytkownik nie wie co poszło nie tak.
+
+**Rozwiązanie:** Rozróżniać typy błędów:
+
+- Nieprawidłowy/wygasły token → `UnauthorizedException` (401)
+- Auth serwis offline → `ServiceUnavailableException` (503)
+- Brak wymaganych ról → `ForbiddenException` (403)
+
 ### DevOps / Security
 
 #### 11. Sekrety w plikach `.env` w repozytorium (P0)
@@ -187,6 +197,7 @@ Przy 4 serwisach trudno debugować request flow bez śledzenia.
 | **P0** | Usunąć sekrety z git, `.env` do `.gitignore` | Bezpieczeństwo |
 | **P1** | Saga/kompensacja dla rezerwacja+płatność | Spójność danych |
 | **P1** | Paginacja w repository | Skalowalność |
+| **P2** | Obsługa błędów w `JwtAuthGuard` — rozróżnianie 401/503/403 | Debugowalność |
 | **P2** | Rate limiting na auth endpointach | Bezpieczeństwo |
 | **P2** | Prawdziwe health checki (`@nestjs/terminus`) | Operacyjność |
 | **P2** | Modularyzacja struktury katalogów | Utrzymywalność |
