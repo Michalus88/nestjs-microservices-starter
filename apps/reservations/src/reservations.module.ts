@@ -11,6 +11,7 @@ import {
   HealthModule,
 } from '@app/common';
 import { ReservationsRepository } from './reservations.repository';
+import { ReservationSagasService } from './sagas';
 import {
   ReservationDocument,
   ReservationSchema,
@@ -38,6 +39,6 @@ import { ConfigModule } from '@nestjs/config';
     HealthModule,
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService, ReservationsRepository],
+  providers: [ReservationsService, ReservationsRepository, ReservationSagasService],
 })
 export class ReservationsModule {}

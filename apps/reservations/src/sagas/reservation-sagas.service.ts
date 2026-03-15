@@ -4,6 +4,8 @@ import {
   PAYMENTS_SERVICE_NAME,
   PaymentsServiceClient,
   ReservationStatus,
+  runSaga,
+  SagaStep,
   UserDto,
 } from '@app/common';
 import { CreateReservationDto } from '../dto/create-reservation.dto';
@@ -43,81 +45,69 @@ export class ReservationSagasService implements OnModuleInit {
     createReservationDto: CreateReservationDto,
     { email, _id: userId }: UserDto,
   ) {
-    const reservation = await this.reservationsRepository.create({
-      ...createReservationDto,
-      timestamp: new Date(),
+    const context: CreateReservationSagaContext = {
+      dto: createReservationDto,
+      email,
       userId,
-      status: ReservationStatus.PENDING,
-    });
+    };
 
-    try {
-      const invoiceId = await this.chargePayment(createReservationDto, email);
-      return await this.confirmReservation(reservation._id, invoiceId);
-    } catch (error) {
-      await this.failReservation(reservation._id);
-      throw error;
-    }
+    await runSaga(this.getCreateSteps(), context, this.logger);
+
+    return this.reservationsRepository.findOne({ _id: context.reservationId });
   }
 
-  private async chargePayment(
-    createReservationDto: CreateReservationDto,
-    email: string,
-  ): Promise<string> {
-    const { id } = await lastValueFrom(
-      this.paymentsService.createCharge({
-        ...createReservationDto.charge,
-        email,
-      }),
-    );
-    return id;
-  }
-
-  private async confirmReservation(
-    reservationId: Types.ObjectId,
-    invoiceId: string,
-  ) {
-    try {
-      return await this.reservationsRepository.findOneAndUpdate(
-        { _id: reservationId },
-        { $set: { status: ReservationStatus.CONFIRMED, invoiceId } },
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to confirm reservation ${reservationId} after successful charge ${invoiceId}. Initiating refund.`,
-        error,
-      );
-      await this.refundPayment(reservationId, invoiceId);
-      throw error;
-    }
-  }
-
-  private async refundPayment(
-    reservationId: Types.ObjectId,
-    invoiceId: string,
-  ) {
-    try {
-      await lastValueFrom(
-        this.paymentsService.refundCharge({ paymentIntentId: invoiceId }),
-      );
-    } catch (refundError) {
-      this.logger.error(
-        `Critical: refund failed for charge ${invoiceId}, reservation ${reservationId}. Manual intervention required.`,
-        refundError,
-      );
-    }
-  }
-
-  private async failReservation(reservationId: Types.ObjectId) {
-    try {
-      await this.reservationsRepository.findOneAndUpdate(
-        { _id: reservationId },
-        { $set: { status: ReservationStatus.FAILED } },
-      );
-    } catch (updateError) {
-      this.logger.error(
-        `Failed to mark reservation ${reservationId} as FAILED. Manual intervention required.`,
-        updateError,
-      );
-    }
+  private getCreateSteps(): SagaStep<CreateReservationSagaContext>[] {
+    return [
+      {
+        name: 'create_reservation',
+        execute: async (ctx) => {
+          const reservation = await this.reservationsRepository.create({
+            ...ctx.dto,
+            timestamp: new Date(),
+            userId: ctx.userId,
+            status: ReservationStatus.PENDING,
+          });
+          ctx.reservationId = reservation._id;
+        },
+        compensate: async (ctx) => {
+          await this.reservationsRepository.findOneAndDelete({
+            _id: ctx.reservationId,
+          });
+        },
+      },
+      {
+        name: 'charge_payment',
+        execute: async (ctx) => {
+          const { id } = await lastValueFrom(
+            this.paymentsService.createCharge({
+              ...ctx.dto.charge,
+              email: ctx.email,
+            }),
+          );
+          ctx.invoiceId = id;
+        },
+        compensate: async (ctx) => {
+          await lastValueFrom(
+            this.paymentsService.refundCharge({
+              paymentIntentId: ctx.invoiceId,
+            }),
+          );
+        },
+      },
+      {
+        name: 'confirm_reservation',
+        execute: async (ctx) => {
+          await this.reservationsRepository.findOneAndUpdate(
+            { _id: ctx.reservationId },
+            {
+              $set: {
+                status: ReservationStatus.CONFIRMED,
+                invoiceId: ctx.invoiceId,
+              },
+            },
+          );
+        },
+      },
+    ];
   }
 }
