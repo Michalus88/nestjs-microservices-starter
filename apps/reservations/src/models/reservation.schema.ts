@@ -16,7 +16,7 @@ export class ReservationDocument extends AbstractDocument {
   userId: string;
 
   @Prop()
-  invoiceId: string;
+  invoiceId?: string;
 
   @Prop({ type: String, enum: ReservationStatus, default: ReservationStatus.PENDING })
   status: ReservationStatus;
