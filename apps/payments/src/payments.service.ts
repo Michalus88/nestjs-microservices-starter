@@ -5,6 +5,7 @@ import {
   NOTIFICATIONS_SERVICE,
   NotifyEmailDto,
   CreateChargeRequest,
+  RefundChargeRequest,
 } from '@app/common';
 import { ClientProxy } from '@nestjs/microservices';
 
@@ -36,5 +37,13 @@ export class PaymentsService {
     this.notificationsService.emit('notify_email', notifyEmailDto);
 
     return { id: paymentIntent.id };
+  }
+
+  async refundCharge({ paymentIntentId }: RefundChargeRequest) {
+    const refund = await this.stripe.refunds.create({
+      payment_intent: paymentIntentId,
+    });
+
+    return { id: refund.id };
   }
 }

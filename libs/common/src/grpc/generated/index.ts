@@ -11,6 +11,8 @@ export {
 export {
   CreateChargeRequest,
   CreateChargeResponse,
+  RefundChargeRequest,
+  RefundChargeResponse,
   PaymentsServiceClient,
   PaymentsServiceController,
   PaymentsServiceControllerMethods,

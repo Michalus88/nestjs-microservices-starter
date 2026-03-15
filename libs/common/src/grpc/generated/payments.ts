@@ -22,6 +22,14 @@ export interface CreateChargeResponse {
   id: string;
 }
 
+export interface RefundChargeRequest {
+  paymentIntentId: string;
+}
+
+export interface RefundChargeResponse {
+  id: string;
+}
+
 export const PAYMENTS_PACKAGE_NAME = "payments";
 
 function createBaseCreateChargeRequest(): CreateChargeRequest {
@@ -120,19 +128,99 @@ export const CreateChargeResponse: MessageFns<CreateChargeResponse> = {
   },
 };
 
+function createBaseRefundChargeRequest(): RefundChargeRequest {
+  return { paymentIntentId: "" };
+}
+
+export const RefundChargeRequest: MessageFns<RefundChargeRequest> = {
+  encode(message: RefundChargeRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.paymentIntentId !== "") {
+      writer.uint32(10).string(message.paymentIntentId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefundChargeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefundChargeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.paymentIntentId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseRefundChargeResponse(): RefundChargeResponse {
+  return { id: "" };
+}
+
+export const RefundChargeResponse: MessageFns<RefundChargeResponse> = {
+  encode(message: RefundChargeResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefundChargeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefundChargeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
 export interface PaymentsServiceClient {
   createCharge(request: CreateChargeRequest): Observable<CreateChargeResponse>;
+
+  refundCharge(request: RefundChargeRequest): Observable<RefundChargeResponse>;
 }
 
 export interface PaymentsServiceController {
   createCharge(
     request: CreateChargeRequest,
   ): Promise<CreateChargeResponse> | Observable<CreateChargeResponse> | CreateChargeResponse;
+
+  refundCharge(
+    request: RefundChargeRequest,
+  ): Promise<RefundChargeResponse> | Observable<RefundChargeResponse> | RefundChargeResponse;
 }
 
 export function PaymentsServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createCharge"];
+    const grpcMethods: string[] = ["createCharge", "refundCharge"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("PaymentsService", method)(constructor.prototype[method], method, descriptor);
@@ -159,10 +247,21 @@ export const PaymentsServiceService = {
       Buffer.from(CreateChargeResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): CreateChargeResponse => CreateChargeResponse.decode(value),
   },
+  refundCharge: {
+    path: "/payments.PaymentsService/RefundCharge" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: RefundChargeRequest): Buffer => Buffer.from(RefundChargeRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): RefundChargeRequest => RefundChargeRequest.decode(value),
+    responseSerialize: (value: RefundChargeResponse): Buffer =>
+      Buffer.from(RefundChargeResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): RefundChargeResponse => RefundChargeResponse.decode(value),
+  },
 } as const;
 
 export interface PaymentsServiceServer extends UntypedServiceImplementation {
   createCharge: handleUnaryCall<CreateChargeRequest, CreateChargeResponse>;
+  refundCharge: handleUnaryCall<RefundChargeRequest, RefundChargeResponse>;
 }
 
 export interface MessageFns<T> {

@@ -4,6 +4,7 @@ package payments;
 
 service PaymentsService {
   rpc CreateCharge (CreateChargeRequest) returns (CreateChargeResponse);
+  rpc RefundCharge (RefundChargeRequest) returns (RefundChargeResponse);
 }
 
 message CreateChargeRequest {
@@ -13,5 +14,13 @@ message CreateChargeRequest {
 }
 
 message CreateChargeResponse {
+  string id = 1;
+}
+
+message RefundChargeRequest {
+  string payment_intent_id = 1;
+}
+
+message RefundChargeResponse {
   string id = 1;
 }
