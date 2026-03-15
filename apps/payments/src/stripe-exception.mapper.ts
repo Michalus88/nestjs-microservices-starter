@@ -1,14 +1,16 @@
 import { status } from '@grpc/grpc-js';
+import Stripe from 'stripe';
 import { ExceptionMapper } from '@app/common';
 
 export const stripeExceptionMapper: ExceptionMapper = (exception: any) => {
-  const type = exception?.type;
-
-  if (type === 'StripeCardError' || type === 'StripeInvalidRequestError') {
+  if (
+    exception instanceof Stripe.errors.StripeCardError ||
+    exception instanceof Stripe.errors.StripeInvalidRequestError
+  ) {
     return { code: status.INVALID_ARGUMENT, message: exception.message };
   }
 
-  if (type === 'StripeAuthenticationError') {
+  if (exception instanceof Stripe.errors.StripeAuthenticationError) {
     return { code: status.UNAUTHENTICATED, message: 'Stripe authentication failed' };
   }
 
