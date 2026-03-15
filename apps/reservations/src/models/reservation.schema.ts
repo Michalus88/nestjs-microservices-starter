@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { AbstractDocument } from '@app/common';
+import { AbstractDocument, ReservationStatus } from '@app/common';
 
 @Schema({ versionKey: false })
 export class ReservationDocument extends AbstractDocument {
@@ -17,6 +17,9 @@ export class ReservationDocument extends AbstractDocument {
 
   @Prop()
   invoiceId: string;
+
+  @Prop({ type: String, enum: ReservationStatus, default: ReservationStatus.PENDING })
+  status: ReservationStatus;
 }
 
 export const ReservationSchema =
