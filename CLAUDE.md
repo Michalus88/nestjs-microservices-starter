@@ -52,6 +52,10 @@ pnpm run format                   # Prettier
 - Prettier: single quotes, trailing commas
 - ESLint: @typescript-eslint + prettier plugin
 
+## Stripe Error Handling (payments service)
+
+Stripe errors have the structure `{ type, code, message }`. The `type` field (e.g. `StripeInvalidRequestError`, `StripeCardError`) identifies the error category. The `code` field (e.g. `charge_already_refunded`) gives the specific reason. Error mapping to gRPC status codes is done in `apps/payments/src/stripe-exception.mapper.ts` — map by `type` first, only add `code`-level checks when you need to differentiate errors within the same type. Full list of codes: https://docs.stripe.com/error-codes
+
 ## Architecture Rules
 
 See [docs/ARCHITECTURE_RULES.md](docs/ARCHITECTURE_RULES.md) — living document with rules for code placement, patterns, and conventions. **Always consult before adding new files or moving code.**
