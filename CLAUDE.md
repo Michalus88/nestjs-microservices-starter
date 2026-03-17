@@ -4,48 +4,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sleepr is a NestJS microservices monorepo for hotel reservations. It uses TypeScript, MongoDB/Mongoose, and pnpm workspaces.
+NestJS microservices monorepo for hotel reservations. TypeScript, MongoDB/Mongoose, pnpm workspaces.
 
 ## Architecture
 
 Four microservices + one shared library:
 
-- **reservations** (HTTP :3000) — Public API. Calls auth and payments via TCP.
-- **auth** (HTTP :3001, TCP :3002) — User registration/login, JWT tokens, passport strategies.
-- **payments** (TCP :3003) — Stripe charges. Emits to notifications.
-- **notifications** (TCP :3004) — Email via Gmail OAuth2/Nodemailer.
-- **libs/common** — Shared: AbstractRepository, DatabaseModule, LoggerModule, JwtAuthGuard, decorators (`@CurrentUser`, `@Roles`), DTOs, constants.
+| Service           | Transport        | Port                      |
+| ----------------- | ---------------- | ------------------------- |
+| **reservations**  | HTTP             | 3000                      |
+| **auth**          | HTTP + gRPC      | 3001 (HTTP), 5000 (gRPC)  |
+| **payments**      | gRPC             | 5001                      |
+| **notifications** | RabbitMQ         | — (consumer only)         |
 
-Inter-service communication uses NestJS TCP transport. Service names are defined in `libs/common/src/constants/services.ts` (AUTH_SERVICE, PAYMENTS_SERVICE, NOTIFICATIONS_SERVICE).
+Communication flow:
+```
+Client → reservations (HTTP)
+            ├── auth (gRPC) — JWT validation
+            └── payments (gRPC) — Stripe charges
+                    └── notifications (RabbitMQ) — email
+```
+
+**libs/common** — Shared: `AbstractRepository`, `DatabaseModule`, `LoggerModule`, `JwtAuthGuard`, `GrpcModule`, `RmqModule`, `HealthModule`, `SagaRunner`, decorators (`@CurrentUser`, `@Roles`), DTOs, constants, generated gRPC types.
+
+Service name constants (injected as `ClientGrpc`/`ClientProxy`) are in `libs/common/src/constants/services.ts`.
 
 ## Common Commands
 
 ```bash
 # Development
-pnpm run start:dev                # Start default app (reservations) with watch
+pnpm run start:dev                # Start reservations with watch
 pnpm run start:dev <app>          # Start specific app (auth, payments, notifications)
 
 # Building
-pnpm run build                    # Build default app
-pnpm run build <app>              # Build specific app
+pnpm run build <app>
 
 # Testing
-pnpm run test                     # Run unit tests (Jest)
-pnpm run test -- --testPathPattern=<pattern>  # Run specific test
-pnpm run test:e2e                 # E2E tests via docker-compose
+pnpm run test                                          # All unit tests
+pnpm run test -- --testPathPattern=<pattern>           # Specific test file
+pnpm run test:e2e                                      # E2E via docker-compose
 
 # Code quality
 pnpm run lint                     # ESLint with auto-fix
 pnpm run format                   # Prettier
+
+# Proto
+pnpm run proto:generate           # Regenerate TS types from .proto files
 ```
 
 ## Key Patterns
 
 - **AbstractRepository\<TDocument\>** in `libs/common/src/database/` — generic CRUD for Mongoose. All repos extend this.
-- **DatabaseModule.forFeature()** — registers Mongoose models per service, similar to TypeOrmModule.forFeature().
+- **DatabaseModule.forFeature()** — registers Mongoose models per service.
 - **ConfigModule** with Joi validation — each service validates its own env vars on startup.
 - **NestJS ValidationPipe** with `whitelist: true` at app bootstrap.
 - **Path alias**: `@app/common` maps to `libs/common/src` (configured in tsconfig.json and jest config).
+
+## gRPC
+
+Proto files live in `proto/`. Generated TypeScript types (via `ts-proto`) are in `libs/common/src/grpc/generated/` — **never edit these manually**, always run `proto:generate` after changing `.proto` files.
+
+`GrpcModule` in `libs/common/src/grpc/` provides `GrpcModule.forClient(serviceName)` for registering a gRPC client. `GrpcExceptionFilter` (applied on gRPC servers) translates exceptions to gRPC status codes. `GrpcToHttpInterceptor` (applied on HTTP controllers) translates gRPC errors back to HTTP responses.
+
+## RabbitMQ
+
+`RmqModule.register(name, queue)` in `libs/common/src/rmq/` registers a RabbitMQ client. Payments publishes to the `notifications` queue; notifications service consumes it.
+
+## Saga Pattern
+
+`runSaga(steps, context, logger)` from `@app/common` executes an ordered list of `SagaStep` objects. Each step has `execute` and optionally `compensate`. On failure, completed steps are compensated in reverse order. Used in `ReservationSagasService` for the create-reservation flow (create → charge → confirm).
 
 ## Code Style
 
