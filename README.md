@@ -1,4 +1,4 @@
-# Sleepr
+# Microservices
 
 NestJS microservices monorepo for hotel reservations.
 
