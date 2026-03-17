@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationSagasService } from './reservation-sagas.service';
-import { ReservationsRepository } from '../reservations.repository';
+import { ReservationsRepository } from '../../infrastructure/repositories/reservations.repository';
 import { PAYMENTS_SERVICE, ReservationStatus } from '@app/common';
 import { Types } from 'mongoose';
 import { of, throwError } from 'rxjs';
-import { CreateReservationDto } from '../dto/create-reservation.dto';
+import { CreateReservationDto } from '../../presentation/dto/create-reservation.dto';
 
 describe('ReservationSagasService', () => {
   let service: ReservationSagasService;

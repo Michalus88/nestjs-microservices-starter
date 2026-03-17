@@ -8,8 +8,8 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { ReservationsService } from './reservations.service';
-import { ReservationSagasService } from './sagas';
+import { ReservationsService } from '../application/reservations.service';
+import { ReservationSagasService } from '../application/sagas';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { CurrentUser, JwtAuthGuard, Roles, UserDto } from '@app/common';

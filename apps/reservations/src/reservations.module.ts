@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import * as Joi from 'joi';
-import { ReservationsService } from './reservations.service';
-import { ReservationsController } from './reservations.controller';
+import { ReservationsService } from './application/reservations.service';
+import { ReservationsController } from './presentation/reservations.controller';
 import {
   DatabaseModule,
   LoggerModule,
@@ -10,12 +10,12 @@ import {
   GrpcModule,
   HealthModule,
 } from '@app/common';
-import { ReservationsRepository } from './reservations.repository';
-import { ReservationSagasService } from './sagas';
+import { ReservationsRepository } from './infrastructure/repositories/reservations.repository';
+import { ReservationSagasService } from './application/sagas';
 import {
   ReservationDocument,
   ReservationSchema,
-} from './models/reservation.schema';
+} from './domain/models/reservation.schema';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

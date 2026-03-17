@@ -8,8 +8,8 @@ import {
   SagaStep,
   UserDto,
 } from '@app/common';
-import { CreateReservationDto } from '../dto/create-reservation.dto';
-import { ReservationsRepository } from '../reservations.repository';
+import { CreateReservationDto } from '../../presentation/dto/create-reservation.dto';
+import { ReservationsRepository } from '../../infrastructure/repositories/reservations.repository';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Types } from 'mongoose';
 import { lastValueFrom } from 'rxjs';
